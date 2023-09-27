@@ -20,7 +20,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LC_ALL=$LC_ALL \
     TZ=$TZ \
     STARTUPDIR=/dockerstartup \
-    KASM_USER=monet
+    KASM_USER=monet \
+    KASM_USER_PW=dev1024
     
 
 ### Home setup
@@ -38,7 +39,11 @@ RUN bash $INST_SCRIPTS/package_rules/package_rules.sh && rm -rf $INST_SCRIPTS/pa
 
 ### Install common tools
 COPY ./src/ubuntu/install/tools $INST_SCRIPTS/tools/
-RUN bash $INST_SCRIPTS/tools/install_tools.sh && rm -rf $INST_SCRIPTS/tools/
+RUN bash $INST_SCRIPTS/tools/install_tools.sh
+RUN mv /etc/sudoers /etc/sudoers.bak \
+    && mv $INST_SCRIPTS/tools/sudoers /etc/sudoers \
+    && chmod 440 /etc/sudoers && chown root:root /etc/sudoers \
+    && rm -rf $INST_SCRIPTS/tools/
 
 ### Copy over the maximization script to our startup dir for use by app images.
 COPY ./src/ubuntu/install/maximize_script $STARTUPDIR/
@@ -130,12 +135,14 @@ COPY ./src/ubuntu/install/emblems $INST_SCRIPTS/emblems/
 RUN bash $INST_SCRIPTS/emblems/install_emblems.sh && rm -rf $INST_SCRIPTS/emblems/
 
 ### Create user and home directory for base images that don't already define it
-RUN (groupadd -g 1000 ${KASM_USER} \
-    && useradd -M -u 1000 -g 1000 ${KASM_USER} \
-    && usermod -a -G ${KASM_USER} ${KASM_USER}) ; exit 0
+RUN (groupadd ${KASM_USER} -g 1000 \
+     && useradd -g ${KASM_USER} -M --no-log-init --shell /bin/bash ${KASM_USER} \
+     && echo "${KASM_USER}:${KASM_USER_PW}" | chpasswd \
+     && usermod -u 1000 -aG root,sudo,${KASM_USER} ${KASM_USER} \
+     && echo "${KASM_USER}  ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${KASM_USER}) ; exit 0
 ENV HOME=/home/${KASM_USER}
 WORKDIR $HOME
-RUN mkdir -p $HOME && chown -R 1000:0 $HOME
+RUN mkdir -p $HOME && chown -R ${KASM_USER}:${KASM_USER} $HOME
 
 ### FIX PERMISSIONS ## Objective is to change the owner of non-home paths to root, remove write permissions, and set execute where required
 # these files are created on container first exec, by the default user, so we have to create them since default will not have write perm
@@ -184,13 +191,14 @@ ARG LC_ALL='en_US.UTF-8'
 ARG START_PULSEAUDIO=1
 ARG START_XFCE4=1
 ARG TZ='Etc/UTC'
-ENV KASM_USER=monet \
-    AUDIO_PORT=4901 \
+
+ENV KASM_USER monet
+ENV HOME=/home/${KASM_USER}
+ENV AUDIO_PORT=4901 \
     DEBIAN_FRONTEND=noninteractive \
     DISPLAY=:1 \
     DISTRO=$DISTRO \
     GOMP_SPINCOUNT=0 \
-    HOME=/home/${KASM_USER} \
     INST_SCRIPTS=/dockerstartup/install \
     KASMVNC_AUTO_RECOVER=true \
     KASM_VNC_PATH=/usr/share/kasmvnc \
@@ -213,10 +221,10 @@ ENV KASM_USER=monet \
     VNCOPTIONS="-PreferBandwidth -DynamicQualityMin=4 -DynamicQualityMax=7 -DLP_ClipDelay=0" \
     VNC_PORT=5901 \
     VNC_PORT=5901 \
-    VNC_PW=vncpassword \
+    VNC_PW=dev1024 \
     VNC_RESOLUTION=1280x1024 \
     VNC_RESOLUTION=1280x720 \
-    VNC_VIEW_ONLY_PW=vncviewonlypassword \
+    VNC_VIEW_ONLY_PW=dev1024only \
     TZ=$TZ
 
 ### Ports and user
@@ -225,7 +233,7 @@ EXPOSE $VNC_PORT \
        $UPLOAD_PORT \
        $AUDIO_PORT
 WORKDIR $HOME
-USER 1000
+USER $KASM_USER
 
 ENTRYPOINT ["/dockerstartup/kasm_default_profile.sh", "/dockerstartup/vnc_startup.sh", "/dockerstartup/kasm_startup.sh"]
 CMD ["--wait"]

@@ -4,6 +4,12 @@ DEFAULT_PROFILE_HOME=/home/kasm-default-profile
 PROFILE_SYNC_DIR=/kasm_profile_sync
 
 
+function copy_default_profile_to_home_up {
+    echo "Copying default profile to home directory up"
+    cp -urp $DEFAULT_PROFILE_HOME/.  $HOME/
+    ls -la $HOME
+}
+
 function copy_default_profile_to_home {
     echo "Copying default profile to home directory"
     cp -rp $DEFAULT_PROFILE_HOME/.  $HOME/
@@ -46,6 +52,7 @@ function verify_profile_config {
 
 if  [ -f "$HOME/.bashrc" ]; then
     echo "Profile already exists. Will not copy default contents"
+    copy_default_profile_to_home_up
 else
     echo "Profile Sync Directory Does Not Exist. No Sync will occur"
     copy_default_profile_to_home
