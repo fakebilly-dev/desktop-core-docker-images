@@ -32,6 +32,9 @@ else
   apt-get install -y vim wget net-tools locales bzip2 wmctrl software-properties-common mesa-utils bc
 
   echo "generate locales for en_US.UTF-8"
+  sed -ie 's/# zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/g' /etc/locale.gen
+  sed -ie 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/g' /etc/locale.gen
+  locale-gen
   locale-gen en_US.UTF-8
 fi
 
