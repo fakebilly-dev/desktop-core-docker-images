@@ -29,13 +29,13 @@ else
   apt-get update
   # Update tzdata noninteractive (otherwise our script is hung on user input later).
   DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata
-  apt-get install -y vim curl wget net-tools locales bzip2 wmctrl software-properties-common mesa-utils bc sudo
+  apt-get install -y vim curl wget net-tools bzip2 wmctrl software-properties-common mesa-utils bc sudo
 
-  echo "generate locales for en_US.UTF-8"
-  sed -ie 's/# zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/g' /etc/locale.gen
-  sed -ie 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/g' /etc/locale.gen
-  locale-gen
-  locale-gen en_US.UTF-8
+#  echo "generate locales for en_US.UTF-8"
+#  sed -ie 's/# zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/g' /etc/locale.gen
+#  sed -ie 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/g' /etc/locale.gen
+#  locale-gen
+#  locale-gen en_US.UTF-8
 fi
 
 if [ "$DISTRO" = "ubuntu" ]; then

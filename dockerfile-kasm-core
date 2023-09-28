@@ -1,5 +1,5 @@
 #### Build Stage ####
-ARG BASE_IMAGE="ubuntu:20.04"
+ARG BASE_IMAGE="fakebilly/ubuntu:20.04"
 FROM $BASE_IMAGE AS base_layer
 
 ### Environment config
@@ -7,22 +7,34 @@ ARG BG_IMG=bg_focal.png
 ARG EXTRA_SH=noop.sh
 ARG DISTRO=ubuntu
 ARG LANG='en_US.UTF-8'
-ARG LANGUAGE='en_US:en'
+ARG LANGUAGE='en_US.UTF-8'
 ARG LC_ALL='en_US.UTF-8'
 ARG TZ='Etc/UTC'
+
 ENV DEBIAN_FRONTEND=noninteractive \
     DISTRO=$DISTRO \
+    KASM_USER=monet \
+    KASM_USER_PW=dev1024 \
     HOME=/home/kasm-default-profile \
     INST_SCRIPTS=/dockerstartup/install \
     KASM_VNC_PATH=/usr/share/kasmvnc \
+    TZ=$TZ \
+    STARTUPDIR=/dockerstartup \
     LANG=$LANG \
     LANGUAGE=$LANGUAGE \
     LC_ALL=$LC_ALL \
-    TZ=$TZ \
-    STARTUPDIR=/dockerstartup \
-    KASM_USER=monet \
-    KASM_USER_PW=dev1024
-    
+    LC_CTYPE=en_US.UTF-8 \
+    LC_NUMERIC=en_US.UTF-8 \
+    LC_TIME=en_US.UTF-8 \
+    LC_COLLATE=en_US.UTF-8 \
+    LC_MONETARY=en_US.UTF-8 \
+    LC_MESSAGES=en_US.UTF-8 \
+    LC_PAPER=en_US.UTF-8 \
+    LC_NAME=en_US.UTF-8 \
+    LC_ADDRESS=en_US.UTF-8 \
+    LC_TELEPHONE=en_US.UTF-8 \
+    LC_MEASUREMENT=en_US.UTF-8 \
+    LC_IDENTIFICATION=en_US.UTF-8
 
 ### Home setup
 WORKDIR $HOME
@@ -186,7 +198,7 @@ LABEL "org.opencontainers.image.authors"='Fake Billy'
 ARG DISTRO=ubuntu
 ARG EXTRA_SH=noop.sh
 ARG LANG='en_US.UTF-8'
-ARG LANGUAGE='en_US:en'
+ARG LANGUAGE='en_US.UTF-8'
 ARG LC_ALL='en_US.UTF-8'
 ARG START_PULSEAUDIO=1
 ARG START_XFCE4=1
@@ -202,9 +214,6 @@ ENV AUDIO_PORT=4901 \
     INST_SCRIPTS=/dockerstartup/install \
     KASMVNC_AUTO_RECOVER=true \
     KASM_VNC_PATH=/usr/share/kasmvnc \
-    LANG=$LANG \
-    LANGUAGE=$LANGUAGE \
-    LC_ALL=$LC_ALL \
     LD_LIBRARY_PATH=/opt/libjpeg-turbo/lib64/:/usr/local/lib/ \
     LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/usr/lib/i386-linux-gnu${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}:/usr/local/nvidia/lib:/usr/local/nvidia/lib64 \
     MAX_FRAME_RATE=24 \
@@ -225,7 +234,22 @@ ENV AUDIO_PORT=4901 \
     VNC_RESOLUTION=1280x1024 \
     VNC_RESOLUTION=1280x720 \
     VNC_VIEW_ONLY_PW=dev1024only \
-    TZ=$TZ
+    TZ=$TZ \
+    LANG=$LANG \
+    LANGUAGE=$LANGUAGE \
+    LC_ALL=$LC_ALL \
+    LC_CTYPE=en_US.UTF-8 \
+    LC_NUMERIC=en_US.UTF-8 \
+    LC_TIME=en_US.UTF-8 \
+    LC_COLLATE=en_US.UTF-8 \
+    LC_MONETARY=en_US.UTF-8 \
+    LC_MESSAGES=en_US.UTF-8 \
+    LC_PAPER=en_US.UTF-8 \
+    LC_NAME=en_US.UTF-8 \
+    LC_ADDRESS=en_US.UTF-8 \
+    LC_TELEPHONE=en_US.UTF-8 \
+    LC_MEASUREMENT=en_US.UTF-8 \
+    LC_IDENTIFICATION=en_US.UTF-8
 
 ### Ports and user
 EXPOSE $VNC_PORT \
