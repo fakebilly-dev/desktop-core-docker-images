@@ -6,13 +6,13 @@ PROFILE_SYNC_DIR=/kasm_profile_sync
 
 function copy_default_profile_to_home_up {
     echo "Copying default profile to home directory up"
-    cp -urp $DEFAULT_PROFILE_HOME/.  $HOME/
+    ls -A $DEFAULT_PROFILE_HOME/ | grep -v .bashrc | xargs -i sudo cp -urp $DEFAULT_PROFILE_HOME/{} $HOME/
     ls -la $HOME
 }
 
 function copy_default_profile_to_home {
     echo "Copying default profile to home directory"
-    cp -rp $DEFAULT_PROFILE_HOME/.  $HOME/
+    sudo cp -rp $DEFAULT_PROFILE_HOME/.  $HOME/
     ls -la $HOME
 }
 

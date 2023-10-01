@@ -1,6 +1,7 @@
 #### Build Stage ####
-ARG BASE_IMAGE="fakebilly/ubuntu:20.04"
-FROM $BASE_IMAGE AS base_layer
+ARG BASE_TAG="20.04-os"
+ARG BASE_IMAGE="fakebilly/ubuntu"
+FROM $BASE_IMAGE:$BASE_TAG AS base_layer
 
 ### Environment config
 ARG BG_IMG=bg_focal.png
@@ -52,8 +53,7 @@ RUN bash $INST_SCRIPTS/package_rules/package_rules.sh && rm -rf $INST_SCRIPTS/pa
 ### Install common tools
 COPY ./src/ubuntu/install/tools $INST_SCRIPTS/tools/
 RUN bash $INST_SCRIPTS/tools/install_tools.sh
-RUN mv /etc/sudoers /etc/sudoers.bak \
-    && mv $INST_SCRIPTS/tools/sudoers /etc/sudoers \
+RUN mv -f $INST_SCRIPTS/tools/sudoers /etc/sudoers \
     && chmod 440 /etc/sudoers && chown root:root /etc/sudoers \
     && rm -rf $INST_SCRIPTS/tools/
 
@@ -127,8 +127,11 @@ RUN chmod +x /etc/squid/start_squid.sh && chmod 4755 /etc/squid/start_squid.sh
 ### configure startup
 COPY ./src/common/scripts/kasm_hook_scripts $STARTUPDIR
 ADD ./src/common/startup_scripts $STARTUPDIR
-RUN bash $STARTUPDIR/set_user_permission.sh $STARTUPDIR $HOME && \
-    echo 'source $STARTUPDIR/generate_container_user' >> $HOME/.bashrc
+RUN cp /root/.bashrc $HOME/.bashrc \
+    && cp /root/.profile $HOME/.profile \
+    && echo 'source $STARTUPDIR/generate_container_user' >> $HOME/.bashrc  \
+    && touch $HOME/.sudo_as_admin_successful \
+    && bash $STARTUPDIR/set_user_permission.sh $STARTUPDIR $HOME
 
 ### extra configurations needed per distro variant
 COPY ./src/ubuntu/install/extra $INST_SCRIPTS/extra/
@@ -148,13 +151,13 @@ RUN bash $INST_SCRIPTS/emblems/install_emblems.sh && rm -rf $INST_SCRIPTS/emblem
 
 ### Create user and home directory for base images that don't already define it
 RUN (groupadd ${KASM_USER} -g 1000 \
-     && useradd -g ${KASM_USER} -M --no-log-init --shell /bin/bash ${KASM_USER} \
-     && echo "${KASM_USER}:${KASM_USER_PW}" | chpasswd \
-     && usermod -u 1000 -aG root,sudo,${KASM_USER} ${KASM_USER} \
-     && echo "${KASM_USER}  ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${KASM_USER}) ; exit 0
-ENV HOME=/home/${KASM_USER}
+    && useradd -g ${KASM_USER} -M --no-log-init --shell /bin/bash ${KASM_USER} \
+    && echo "${KASM_USER}:${KASM_USER_PW}" | chpasswd \
+    && usermod -u 1000 -aG root,sudo,${KASM_USER} ${KASM_USER} \
+    && echo "${KASM_USER}  ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${KASM_USER}) ; exit 0
+ENV HOME=/home/$KASM_USER
 WORKDIR $HOME
-RUN mkdir -p $HOME && chown -R ${KASM_USER}:${KASM_USER} $HOME
+RUN mkdir -p $HOME && chown -R $KASM_USER:$KASM_USER $HOME
 
 ### FIX PERMISSIONS ## Objective is to change the owner of non-home paths to root, remove write permissions, and set execute where required
 # these files are created on container first exec, by the default user, so we have to create them since default will not have write perm
@@ -178,9 +181,9 @@ RUN touch $STARTUPDIR/wm.log \
     && chmod +x $STARTUPDIR/jsmpeg/kasm_audio_out-linux \
     && rm -rf $STARTUPDIR/install \
     && mkdir -p $STARTUPDIR/kasmrx/Downloads \
-    && chown 1000:1000 $STARTUPDIR/kasmrx/Downloads \
+    && chown $KASM_USER:$KASM_USER $STARTUPDIR/kasmrx/Downloads \
     && chown -R root:root /usr/local/bin \
-    && chown 1000:root /var/run/pulse \
+    && chown $KASM_USER:root /var/run/pulse \
     && rm -Rf /home/kasm-default-profile/.launchpadlib
 
 ### Cleanup job
@@ -192,7 +195,8 @@ FROM scratch
 COPY --from=base_layer / /
 
 ### Labels
-LABEL "org.opencontainers.image.authors"='Fake Billy'
+LABEL maintainer="fakebilly.work@outlook.com"
+LABEL org.opencontainers.image.authors="FakeBilly"
 
 ### Environment config
 ARG DISTRO=ubuntu
@@ -205,7 +209,7 @@ ARG START_XFCE4=1
 ARG TZ='Etc/UTC'
 
 ENV KASM_USER monet
-ENV HOME=/home/${KASM_USER}
+ENV HOME=/home/$KASM_USER
 ENV AUDIO_PORT=4901 \
     DEBIAN_FRONTEND=noninteractive \
     DISPLAY=:1 \
